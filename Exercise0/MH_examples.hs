@@ -18,28 +18,43 @@ neg b = if b then False else True ;
 -- land :: Bool -> Bool -> Bool ;
 -- lor :: Bool -> Bool -> Bool ;
 
+land :: Bool -> Bool -> Bool ;
+land a b = if (a && b) then True else False ;
+
+lor :: Bool -> Bool -> Bool ;
+lor a b = if (a || b) then True else False ;
 
 -- Arithmetic functions
 
-fib :: Integer -> Integer ;
-fib n = if n == 0 then 0
+fib' :: Integer -> Integer ;
+fib' n = if n == 0 then 0
         else if n == 1 then 1
-        else fib (n - 1) + fib (n - 2) ;  -- this is inefficient
+        else fib' (n - 1) + fib' (n - 2) ;  -- this is inefficient
+		
+fib :: Integer -> Integer ;
+fib n = if n > 0 then fib' n
+		else (if (divides 2 n) then (fib' (-n))
+		else (-fib' (-n))) ;
 
 times :: Integer -> Integer -> Integer ;
 times m n = if 0 < n then m + times m (n - 1)
             else if n < 0 then times m (n + 1) - m 
             else 0 ;
 
-divides :: Integer -> Integer -> Bool ;
-divides m n = if n == 0 then True
+absolutna :: Integer -> Integer ;
+absolutna n = if n > 0 then n else -n ;
+
+divides' :: Integer -> Integer -> Bool ;
+divides' m n = if n == 0 then True
         else if n < m then False 
-        else divides m (n - m);
+        else divides' m (n - m) ;
+		
+divides :: Integer -> Integer -> Bool ;
+divides m n = divides' (absolutna m) (absolutna n) ;
 
 -- Exercise: change divides so that it will also work with negative numbers!
 
 -- Exercise: change fib so that it will also work with negative numbers!
-
 
 -- Currying
 
@@ -48,6 +63,8 @@ double = times 2 ;
 
 -- Exercise: define multSeven telling whether a number is a multiple of 7.
 
+multSeven :: Integer -> Bool ;
+multSeven = divides 7 ;
 
 -- Taking a function as argument
 
@@ -61,6 +78,11 @@ twice f n = f (f n) ;
 -- pow a b
 -- which computes a to the power of b
 
+rpt :: Integer -> (a -> a) -> a -> a ;
+rpt m f n = if m < 1 then n else f (rpt (m-1) f n) ;
+
+pow:: Integer -> Integer -> Integer ;
+pow a b = rpt (b-1) (times a) a ;
 
 -- Representing infinite lists as functions
 
@@ -80,9 +102,26 @@ from m n = m + n ;
 -- apply f l
 -- which applies the function f on each entry of l (i.e., returns a list)
 
+apply :: (Integer -> Integer) -> (Integer -> Integer) -> (Integer -> Integer) ;
+apply f l = cons  (f (hd l)) (apply f (tl l)) ;
+
 -- Exercise: define a function square returning the square of the input,
 -- and use it to define a list squares of squares of numbers starting with 0.
 
+square :: Integer -> Integer ;
+square n = times n n ;
+
+ustvari :: (Integer -> Integer) ;
+ustvari = cons 0 (apply (1+) ustvari) ;
+
+naravna :: (Integer -> Integer) ;
+naravna = from 0 ;
+
+naravna' :: (Integer -> Integer) ;
+naravna' n = n ;
+
+kvadrati :: (Integer -> Integer) ;
+kvadrati = apply square naravna ;
 
 -- Filtering an infinite list
 
@@ -115,9 +154,18 @@ primes = sieve (from 2) ;
 -- returning a list whose n-th entry is the sum of the first n entries of the input.
 -- Using this define the infinite list of triangle numbers triangles.
 
+addEntries :: (Integer -> Integer) -> (Integer -> Integer) ;
+addEntries l = cons (hd l) (addEntries (cons ((hd l) + (hd (tl l))) (tl (tl l)))) ;
+
+trikotnik:: (Integer -> Integer) ;
+trikotnik = addEntries naravna ;
+
 -- Exercise: define a function
 -- addLists :: (Integer -> Integer) -> (Integer -> Integer) -> (Integer -> Integer)
 -- returning a list whose n-th entry is the sum of n-th entries of the input lists.
+
+addLists :: (Integer -> Integer) -> (Integer -> Integer) -> (Integer -> Integer) ;
+addLists l n =  cons ((hd l) + (hd n)) (addLists (tl l) (tl n)) ;
 
 -- Question: What does the following give?
 -- addLists triangles (tl triangles)
