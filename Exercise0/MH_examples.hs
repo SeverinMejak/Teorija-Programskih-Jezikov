@@ -30,7 +30,7 @@ fib' :: Integer -> Integer ;
 fib' n = if n == 0 then 0
         else if n == 1 then 1
         else fib' (n - 1) + fib' (n - 2) ;  -- this is inefficient
-		
+
 fib :: Integer -> Integer ;
 fib n = if n > 0 then fib' n
 		else (if (divides 2 n) then (fib' (-n))
@@ -38,7 +38,7 @@ fib n = if n > 0 then fib' n
 
 times :: Integer -> Integer -> Integer ;
 times m n = if 0 < n then m + times m (n - 1)
-            else if n < 0 then times m (n + 1) - m 
+            else if n < 0 then times m (n + 1) - m
             else 0 ;
 
 absolutna :: Integer -> Integer ;
@@ -46,9 +46,9 @@ absolutna n = if n > 0 then n else -n ;
 
 divides' :: Integer -> Integer -> Bool ;
 divides' m n = if n == 0 then True
-        else if n < m then False 
+        else if n < m then False
         else divides' m (n - m) ;
-		
+
 divides :: Integer -> Integer -> Bool ;
 divides m n = divides' (absolutna m) (absolutna n) ;
 
@@ -157,8 +157,8 @@ primes = sieve (from 2) ;
 addEntries :: (Integer -> Integer) -> (Integer -> Integer) ;
 addEntries l = cons (hd l) (addEntries (cons ((hd l) + (hd (tl l))) (tl (tl l)))) ;
 
-trikotnik:: (Integer -> Integer) ;
-trikotnik = addEntries naravna ;
+triangles :: (Integer -> Integer) ;
+triangles = addEntries naravna ;
 
 -- Exercise: define a function
 -- addLists :: (Integer -> Integer) -> (Integer -> Integer) -> (Integer -> Integer)
@@ -170,5 +170,27 @@ addLists l n =  cons ((hd l) + (hd n)) (addLists (tl l) (tl n)) ;
 -- Question: What does the following give?
 -- addLists triangles (tl triangles)
 
+seznam :: (Integer -> Integer) ;
+seznam  = (addLists triangles (tl triangles)) ;
+
+-- Answer: The list of squares.
+
 -- Exercise: see if you can find a more efficient way to compute the
 -- "infinite list" of Fibonacci numbers than the fib function above.
+
+-- First we construct a function zadnjaDva, which from a list l constructs a new
+-- list, where n-th element is the sum of n-th and (n+1)-th member of l
+
+zadnjaDva :: (Integer -> Integer) -> (Integer -> Integer) ;
+zadnjaDva l = cons ((hd (tl l)) + (hd l)) (zadnjaDva (tl l)) ;
+
+-- This gives us an idea for the Fibonacci numbers:
+
+fibo :: (Integer -> Integer) -> (Integer -> Integer) ;
+fibo l = cons (hd l)  (fibo (cons (hd (tl l)) (cons ((hd (tl l)) + (hd l)) (tl (tl l))))) ;
+
+nic :: (Integer -> Integer);
+nic n = 0 ;
+
+fibonacci :: (Integer -> Integer) ;
+fibonacci = fibo (cons 0 (cons 1 nic)) ;
