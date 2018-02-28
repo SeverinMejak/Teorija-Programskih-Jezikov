@@ -16,6 +16,8 @@ import MH_Lex
         else                {KEY "else"}
         integertype         {KEY "Integer"}
         booltype            {KEY "Bool"}
+        chartype            {KEY "Char"}
+        stringtype            {KEY "String"}
         '~'                 {OP "=="}
         '<'                 {OP "<"}
         '+'                 {OP "+"}
@@ -33,6 +35,9 @@ import MH_Lex
         num                 {NUM $$}
         boolean             {BOOLEAN $$}
         var                 {VAR $$}
+        char                {CHAR $$}
+        strn                {STRN $$}
+        list                {LIST $$}
 
 
 -- precedence and associativity declarations, lowest precedence first
@@ -42,7 +47,7 @@ import MH_Lex
 --%nonassoc '~' '<'
 --%nonassoc um
 --%left '+' '-'
---%right arrow
+%right arrow
 
 %%
 
@@ -57,6 +62,8 @@ TypeDecl : var colcol Type ';'  {($1,$3)}
 
 Type : integertype              {TypeConst "Integer"}
      | booltype                 {TypeConst "Bool"}
+     | chartype                 {TypeConst "Char"}
+     | stringtype                 {TypeConst "String"}
      | Type arrow Type          {TypeOp ("->", $1, $3)}
      | '(' Type ')'             {$2}
 
@@ -77,27 +84,26 @@ Exp1 : Exp1 lor Exp2            {Op ("||", $1, $3)}
 Exp2 : not Exp2                 {Uop ("not", $2)}
     | Exp3                      {$1}
 	 
-Exp3 : Exp3 '~' Exp4            {Op ("==", $1, $3)}
+Exp3 : Exp4 '~' Exp4            {Op ("==", $1, $3)}
+    | Exp4 '<' Exp4             {Op ("<", $1, $3)}
     | Exp4                      {$1}
 	 
-Exp4 : Exp4 '<' Exp5            {Op ("<", $1, $3)}
+Exp4 : Exp4 '+' Exp5            {Op ("+", $1, $3)}
+    | Exp4 '-' Exp5             {Op ("-", $1, $3)}
     | Exp5                      {$1}
 	 
-Exp5 : Exp5 '+' Exp6            {Op ("+", $1, $3)}
-    | Exp6                      {$1}
-	 
-Exp6 : Exp6 '-' Exp7            {Op ("-", $1, $3)}
-    | Exp7                      {$1}
-	 
-Exp7 : um Exp7                  {Uop ("um", $2)}
-     | Exp8                     {$1}
+Exp5 : um Exp5                  {Uop ("um", $2)}
+     | Exp6                     {$1}
 
-Exp8 : Exp9 Exp8                {Op ("appl", $1, $2)}
-     | Exp9                     {$1}
+Exp6 : Exp6 Exp7                {Op ("appl", $1, $2)}
+     | Exp7                     {$1}
 
-Exp9 : num                      {Num $1}
+Exp7 : num                      {Num $1}
      | boolean                  {Boolean $1}
      | var                      {Var $1}
+     | char                     {Char $1}
+     | strn                     {Strn $1}
+     | list                     {List $1}
      | '(' Exp ')'              {$2}
      
 {
@@ -115,6 +121,9 @@ data Type =
 data Exp =
         Num Integer |
         Boolean Bool |
+        Char Char |
+        Strn String |
+        List List |
         Var String |
         Op (String, Exp, Exp) |
         Uop (String, Exp) |
